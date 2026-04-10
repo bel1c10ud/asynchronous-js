@@ -93,14 +93,27 @@ function buildPaymentMessageCallback(
   originalPrice: number,
   callback: Callback<string>
 ): void {
-  throw new Error("TODO: implement buildPaymentMessageCallback");
+  getUserCallback(userId, (error, user) => {
+    if (error) callback(error)
+    if (!user) throw new Error("User를 찾을 수 없습니다.")
+
+    getDiscountRateCallback(user.grade, (error, rate) => {
+      if (error) callback(error)
+      if (!rate) throw new Error("rate를 찾을 수 없습니다.")
+
+      callback(null, formatPaymentMessage(user.name, originalPrice, rate))
+    })
+  })
+
 }
 
 async function buildPaymentMessagePromise(
   userId: string,
   originalPrice: number
 ): Promise<string> {
-  throw new Error("TODO: implement buildPaymentMessagePromise");
+  return getUserPromise(userId)
+    .then(user => getDiscountRatePromise(user.grade).then(rate => ({ rate, name: user.name })))
+    .then(result => formatPaymentMessage(result.name, originalPrice, result.rate))
 }
 
 // 3. async/await 버전
